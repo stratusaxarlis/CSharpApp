@@ -60,7 +60,7 @@ public static class WebApplicationBuilderExtensions
         }
         app.UseSerilogRequestLogging();
         //app.UseHttpsRedirection();
-
+        /*
         var versionedEndpointRouteBuilder = app.NewVersionedApi();
         var productsGroup = versionedEndpointRouteBuilder.MapGroup("api/v{version:apiVersion}/products")
             .HasApiVersion(1.0);
@@ -107,7 +107,22 @@ public static class WebApplicationBuilderExtensions
             return success ? Results.NoContent() : Results.NotFound();
         })
         .WithName("DeleteProduct");
+        */
+        app.UseExceptionHandler(exceptionHandlerApp =>
+        {
+            exceptionHandlerApp.Run(async httpContext =>
+            {
+                IProblemDetailsService? pds = httpContext.RequestServices.GetService<IProblemDetailsService>();
+                if (pds == null || !await pds.TryWriteAsync(new ProblemDetailsContext { HttpContext = httpContext }))
+                {
+                    // Fallback behavior
+                    await httpContext.Response.WriteAsync("Fallback: An error occurred.");
+                }
+            });
+        });
 
+
+        app.MapEndpoints();
         return app;
     }
 
