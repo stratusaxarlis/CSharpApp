@@ -17,6 +17,8 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+        <PackageReference Include="Serilog.Sinks.Console.Themes" Version="4.0.1" /> 
     </ItemGroup>
 
     <ItemGroup>
