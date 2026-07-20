@@ -2,6 +2,7 @@ using CSharpApp.Infrastructure.Middleware.Handlers;
 using Microsoft.Extensions.Options;
 using Polly;
 using System.Diagnostics;
+using CSharpApp.Application.Auth;
 using CSharpApp.Application.Categories;
 
 namespace CSharpApp.Infrastructure.Configuration;
@@ -18,6 +19,7 @@ public static class HttpConfiguration
         HttpClientSettings httpSettings = configuration?.GetSection("HttpClientSettings").Get<HttpClientSettings>() ?? new HttpClientSettings();
         services.AddTypedHttpClient<IProductsService, ProductsService>(httpSettings);
         services.AddTypedHttpClient<ICategoriesService, CategoriesService>(httpSettings);
+        services.AddTypedHttpClient<IAuthService, AuthService>(httpSettings);
 
         return services;
     }
@@ -26,7 +28,7 @@ public static class HttpConfiguration
     {
         return services.AddHttpClient<TClient, TImplementation>((sp, client) =>
             {
-                var settings = sp.GetRequiredService<IOptions<RestApiSettings>>().Value;
+                RestApiSettings settings = sp.GetRequiredService<IOptions<RestApiSettings>>().Value;
 
                 if (!string.IsNullOrEmpty(settings.BaseUrl))
                 {
