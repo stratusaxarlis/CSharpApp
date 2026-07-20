@@ -1,0 +1,51 @@
+﻿using System.Net.Http.Json;
+
+namespace CSharpApp.Application.Categories;
+
+public sealed class CategoriesService(HttpClient httpClient, IOptionsSnapshot<RestApiSettings> restApiSettings, ILogger<CategoriesService> logger) : ICategoriesService
+{
+    private string CategoriesPath => restApiSettings.Value.Categories!;
+
+    public async Task<IReadOnlyCollection<Category>> GetCategoriesAsync(CancellationToken cancellationToken = default)
+    {
+        var categories = await httpClient.GetFromJsonAsync<List<Category>>(
+            CategoriesPath,
+            cancellationToken
+        );
+
+        var result = categories?.AsReadOnly();
+
+        if (result is null)
+        {
+            logger.LogWarning("No categories found.");
+            return [];
+        }
+
+        return result;
+    }
+
+    public async Task<Category?> GetCategoryByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await httpClient.GetFromJsonAsync<Category>($"{CategoriesPath}/{id}", cancellationToken);
+    }
+
+    public async Task<Category?> CreateCategoryAsync(CreateCategoryDto dto, CancellationToken cancellationToken = default)
+    {
+        var response = await httpClient.PostAsJsonAsync(CategoriesPath, dto, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Category>(cancellationToken: cancellationToken);
+    }
+
+    public async Task<Category?> UpdateCategoryAsync(int id, UpdateCategoryDto dto, CancellationToken cancellationToken = default)
+    {
+        var response = await httpClient.PutAsJsonAsync($"{CategoriesPath}/{id}", dto, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Category>(cancellationToken: cancellationToken);
+    }
+
+    public async Task<bool> DeleteCategoryAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var response = await httpClient.DeleteAsync($"{CategoriesPath}/{id}", cancellationToken);
+        return response.IsSuccessStatusCode;
+    }
+}

@@ -1,6 +1,6 @@
 namespace CSharpApp.Core.Dtos;
 
-public sealed class Category
+public sealed record Category
 {
     [JsonPropertyName("id")]
     public int? Id { get; set; }
@@ -16,4 +16,21 @@ public sealed class Category
 
     [JsonPropertyName("updatedAt")]
     public DateTime? UpdatedAt { get; set; }
+}
+public sealed record CreateCategoryDto
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("image")]
+    public string Image { get; set; } = string.Empty;
+}
+
+public sealed record UpdateCategoryDto
+{
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("image")]
+    public string? Image { get; set; }
 }

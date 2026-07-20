@@ -2,12 +2,12 @@ using System.Net.Http.Json;
 
 namespace CSharpApp.Application.Products;
 
-public sealed class ProductsService(HttpClient httpClient, IOptions<RestApiSettings> restApiSettings, ILogger<ProductsService> logger) : IProductsService
+public sealed class ProductsService(HttpClient httpClient, IOptionsSnapshot<RestApiSettings> restApiSettings, ILogger<ProductsService> logger) : IProductsService
 {
     private string ProductsPath => restApiSettings.Value.Products!;
     public async Task<IReadOnlyCollection<Product>> GetProductsAsync(CancellationToken cancellationToken = default)
     {
-       
+
         var products = await httpClient.GetFromJsonAsync<List<Product>>(
             ProductsPath
         );
