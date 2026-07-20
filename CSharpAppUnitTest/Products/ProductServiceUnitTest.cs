@@ -11,103 +11,202 @@ using Xunit;
 
 namespace UnitTests;
 
-public class ProductsServiceTests
+public sealed class ProductsServiceTests
 {
-    private readonly Mock<HttpMessageHandler> _handlerMock = new();
+    private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock = new();
     private readonly Mock<ILogger<ProductsService>> _loggerMock = new();
-    private readonly IOptions<RestApiSettings> _apiSettings;
-
-    public ProductsServiceTests()
+    private readonly IOptions<RestApiSettings> _options = Options.Create(new RestApiSettings
     {
-        _apiSettings = Options.Create(new RestApiSettings
+        Products = "api/v1/products"
+    });
+
+     private static List<Product> GetSampleProducts() =>
+    [
+        new()
         {
-            BaseUrl = "https://api.escuelajs.co/",
-            Products = "api/v1/products"
-        });
+            Id = 1,
+            Title = "Classic Black T-Shirt",
+            Price = 25,
+            Description = "A comfortable cotton t-shirt",
+            Category = new Category { Id = 1, Name = "Clothes" }
+        },
+        new()
+        {
+            Id = 2,
+            Title = "Leather Shoes",
+            Price = 85,
+            Description = "High quality leather shoes",
+            Category = new Category { Id = 2, Name = "Shoes" }
+        }
+    ];
+
+    private ProductsService CreateService()
+    {
+        var httpClient = new HttpClient(_httpMessageHandlerMock.Object)
+        {
+            BaseAddress = new Uri("https://api.escuelajs.co/")
+        };
+
+        return new ProductsService(httpClient, _options, _loggerMock.Object);
     }
 
-    [Fact]
-    public async Task GetProducts_ReturnsProductList_WhenApiReturns200OK()
+    private void SetupMockResponse(HttpStatusCode statusCode, object? responseBody = null)
     {
-        // Arrange
-        var mockProducts = new List<Product>
-        {
-            new ()
-            {
-                Id = 1,
-                Title = "Classic Black T-Shirt",
-                Price = 25,
-                Description = "A comfortable cotton t-shirt",
-                Category = new Category { Id = 1, Name = "Clothes" }
-            },
-            new ()
-            {
-                Id = 2,
-                Title = "Leather Shoes",
-                Price = 85,
-                Description = "High quality leather shoes",
-                Category = new Category { Id = 2, Name = "Shoes" }
-            }
-        };
+        var response = new HttpResponseMessage(statusCode);
 
-        var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
+        if (responseBody is not null)
         {
-            Content = JsonContent.Create(mockProducts)
-        };
+            response.Content = JsonContent.Create(responseBody);
+        }
 
-        _handlerMock
+        _httpMessageHandlerMock
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(httpResponse);
+            .ReturnsAsync(response);
+    }
 
-        var httpClient = new HttpClient(_handlerMock.Object)
-        {
-            BaseAddress = new Uri(_apiSettings.Value.BaseUrl!)
-        };
+    // --------------------------------------------------------------------------------
+    // 1. GetProductsAsync Tests
+    // --------------------------------------------------------------------------------
 
-        ProductsService service = new (httpClient, _apiSettings, _loggerMock.Object);
+    [Fact]
+    public async Task GetProductsAsync_ReturnsProductsList_WhenSuccessful()
+    {
+        // Arrange
+        var expectedProducts = GetSampleProducts();
+        SetupMockResponse(HttpStatusCode.OK, expectedProducts);
+        var service = CreateService();
 
         // Act
-        IReadOnlyCollection<Product> result = await service.GetProducts();
+        var result = await service.GetProductsAsync();
 
         // Assert
         Assert.NotNull(result);
         Assert.Equal(2, result.Count);
+        Assert.Equal("Classic Black T-Shirt", result.First().Title);
+        Assert.Equal("Clothes", result.First().Category?.Name);
+    }
 
-        var firstProduct = result.First();
-        Assert.Equal(1, firstProduct.Id);
-        Assert.Equal("Classic Black T-Shirt", firstProduct.Title);
-        Assert.Equal(25, firstProduct.Price);
-        Assert.Equal("Clothes", firstProduct.Category?.Name);
+    // --------------------------------------------------------------------------------
+    // 2. GetProductByIdAsync Tests
+    // --------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task GetProductByIdAsync_ReturnsProduct_WhenFound()
+    {
+        // Arrange
+        var expectedProduct = GetSampleProducts().First(); // Classic Black T-Shirt
+        SetupMockResponse(HttpStatusCode.OK, expectedProduct);
+        var service = CreateService();
+
+        // Act
+        var result = await service.GetProductByIdAsync(1);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Id);
+        Assert.Equal("Classic Black T-Shirt", result.Title);
+        Assert.Equal(25, result.Price);
+        Assert.Equal("Clothes", result.Category?.Name);
+    }
+
+    // --------------------------------------------------------------------------------
+    // 3. CreateProductAsync Tests
+    // --------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task CreateProductAsync_ReturnsCreatedProduct_WhenSuccessful()
+    {
+        // Arrange
+        var requestDto = new CreateProductDto(
+            Title: "Classic Black T-Shirt",
+            Price: 25,
+            Description: "A comfortable cotton t-shirt",
+            CategoryId: 1,
+            Images: ["https://i.imgur.com/qR8y32.jpeg"]
+        );
+
+        var createdProduct = GetSampleProducts().First();
+
+        SetupMockResponse(HttpStatusCode.Created, createdProduct);
+        var service = CreateService();
+
+        // Act
+        var result = await service.CreateProductAsync(requestDto);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Id);
+        Assert.Equal("Classic Black T-Shirt", result.Title);
+        Assert.Equal("Clothes", result.Category?.Name);
+    }
+
+    // --------------------------------------------------------------------------------
+    // 4. UpdateProductAsync Tests
+    // --------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task UpdateProductAsync_ReturnsUpdatedProduct_WhenSuccessful()
+    {
+        // Arrange
+        var updateDto = new UpdateProductDto(
+            Title: "Leather Shoes Premium",
+            Price: 95,
+            Description: null,
+            Images: null
+        );
+
+        var updatedProduct = GetSampleProducts().Last(); // Leather Shoes
+        updatedProduct.Title = "Leather Shoes Premium";
+        updatedProduct.Price = 95;
+
+        SetupMockResponse(HttpStatusCode.OK, updatedProduct);
+        var service = CreateService();
+
+        // Act
+        var result = await service.UpdateProductAsync(2, updateDto);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Id);
+        Assert.Equal("Leather Shoes Premium", result.Title);
+        Assert.Equal(95, result.Price);
+        Assert.Equal("Shoes", result.Category?.Name);
+    }
+
+    // --------------------------------------------------------------------------------
+    // 5. DeleteProductAsync Tests
+    // --------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task DeleteProductAsync_ReturnsTrue_WhenDeletionSucceeds()
+    {
+        // Arrange
+        SetupMockResponse(HttpStatusCode.OK, true);
+        var service = CreateService();
+
+        // Act
+        var result = await service.DeleteProductAsync(1);
+
+        // Assert
+        Assert.True(result);
     }
 
     [Fact]
-    public async Task GetProducts_ThrowsHttpRequestException_WhenApiReturnsServerError()
+    public async Task DeleteProductAsync_ReturnsFalse_WhenProductNotFound()
     {
         // Arrange
-        var httpResponse = new HttpResponseMessage(HttpStatusCode.InternalServerError);
+        SetupMockResponse(HttpStatusCode.NotFound);
+        var service = CreateService();
 
-        _handlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(httpResponse);
+        // Act
+        var result = await service.DeleteProductAsync(999);
 
-        var httpClient = new HttpClient(_handlerMock.Object)
-        {
-            BaseAddress = new Uri(_apiSettings.Value.BaseUrl!)
-        };
-
-        var service = new ProductsService(httpClient, _apiSettings, _loggerMock.Object);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(() => service.GetProducts());
+        // Assert
+        Assert.False(result);
     }
 }

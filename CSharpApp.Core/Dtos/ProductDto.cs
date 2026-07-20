@@ -26,3 +26,19 @@ public sealed record Product
     [JsonPropertyName("category")]
     public Category? Category { get; set; }
 }
+
+
+public record CreateProductDto(
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("price")] int Price,
+    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("categoryId")] int CategoryId,
+    [property: JsonPropertyName("images")] List<string> Images
+);
+
+public record UpdateProductDto(
+    [property: JsonPropertyName("title")] string? Title,
+    [property: JsonPropertyName("price")] int? Price,
+    [property: JsonPropertyName("description")] string? Description,
+    [property: JsonPropertyName("images")] List<string>? Images
+);
