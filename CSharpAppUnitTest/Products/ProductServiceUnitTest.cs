@@ -15,10 +15,8 @@ public sealed class ProductsServiceTests
 {
     private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock = new();
     private readonly Mock<ILogger<ProductsService>> _loggerMock = new();
-    private readonly IOptions<RestApiSettings> _options = Options.Create(new RestApiSettings
-    {
-        Products = "api/v1/products"
-    });
+    private readonly Mock<IOptionsSnapshot<RestApiSettings>> _options = new();
+
 
      private static List<Product> GetSampleProducts() =>
     [
@@ -47,7 +45,7 @@ public sealed class ProductsServiceTests
             BaseAddress = new Uri("https://api.escuelajs.co/")
         };
 
-        return new ProductsService(httpClient, _options, _loggerMock.Object);
+        return new ProductsService(httpClient, _options.Object, _loggerMock.Object);
     }
 
     private void SetupMockResponse(HttpStatusCode statusCode, object? responseBody = null)
