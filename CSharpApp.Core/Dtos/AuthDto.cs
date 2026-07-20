@@ -1,8 +1,12 @@
-﻿namespace CSharpApp.Core.Dtos;
+﻿using System.ComponentModel.DataAnnotations;
 
-public record ThirdPartyAuthDto
+namespace CSharpApp.Core.Dtos;
+
+public record LoginDto
 {
+    [EmailAddress]
     public required string Email { get; init; }
+    [DataType(DataType.Password)]
     public required string Password { get; init; }
 }
 public record JwtTokenResponse

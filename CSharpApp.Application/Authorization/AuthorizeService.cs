@@ -4,7 +4,7 @@ namespace CSharpApp.Application.Auth;
 
 public sealed class AuthService(HttpClient httpClient, IOptionsSnapshot<RestApiSettings> settings, ILogger<AuthService> logger) : IAuthService
 {
-    public async Task<JwtTokenResponse?> LoginAsync(ThirdPartyAuthDto dto)
+    public async Task<JwtTokenResponse?> LoginAsync(LoginDto dto, CancellationToken  cancellationToken = default)
     {
         try
         {
@@ -15,7 +15,7 @@ public sealed class AuthService(HttpClient httpClient, IOptionsSnapshot<RestApiS
                 password = dto.Password
             };
 
-            HttpResponseMessage response = await httpClient.PostAsJsonAsync(authSettings.Auth, credentials);
+            HttpResponseMessage response = await httpClient.PostAsJsonAsync(authSettings.Auth, credentials, cancellationToken);
 
             switch (response.IsSuccessStatusCode)
             {

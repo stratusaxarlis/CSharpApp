@@ -2,5 +2,5 @@
 
 public interface IAuthService
 {
-    Task<JwtTokenResponse?> LoginAsync(ThirdPartyAuthDto dto);
+    Task<JwtTokenResponse?> LoginAsync(LoginDto dto, CancellationToken cancellationToken = default);
 }
