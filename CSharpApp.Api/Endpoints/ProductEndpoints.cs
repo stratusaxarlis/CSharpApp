@@ -1,5 +1,8 @@
 ﻿using CSharpApp.Api.Extensions;
+using CSharpApp.Application.Products.Queries;
 using CSharpApp.Core.Dtos;
+using CSharpApp.Infrastructure.Helpers;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CSharpApp.Api.Endpoints;
@@ -22,10 +25,10 @@ public sealed class ProductEndpoints : EndpointGroupBase
         group.MapDelete(handler: DeleteProductAsync, pattern: "{id:int}");
     }
 
-    [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
-    private static async Task<IResult> GetProductsAsync(IProductsService productsService, CancellationToken cancellationToken = default)
+    [ProducesResponseType(typeof(Result<IReadOnlyCollection<Product>>), StatusCodes.Status200OK)]
+    private static async Task<IResult> GetProductsAsync([FromServices] ISender sender, CancellationToken cancellationToken = default)
     {
-        IReadOnlyCollection<Product> products = await productsService.GetProductsAsync(cancellationToken);
+        Result<IReadOnlyCollection<Product>> products = await sender.Send(new GetProductsQuery(), cancellationToken);
         return Results.Ok(products);
     }
 
@@ -40,15 +43,16 @@ public sealed class ProductEndpoints : EndpointGroupBase
             ? Results.Created($"api/v{version}/products/{created.Id}", created)
             : Results.BadRequest();
     }
-    [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<Product>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    private static async Task<IResult> GetProductByIdAsync(int id, IProductsService productsService, CancellationToken cancellationToken = default)
+    private static async Task<IResult> GetProductByIdAsync(int id, [FromServices] ISender sender, CancellationToken cancellationToken = default)
     {
-        Product? product = await productsService.GetProductByIdAsync(id, cancellationToken);
-        return product is not null ? Results.Ok(product) : Results.NotFound();
+        GetProductByIdQuery query = new GetProductByIdQuery { Id = id };
+        Result<Product> result = await sender.Send(query, cancellationToken);
+        return result.Data is not null ? Results.Ok(result.Data) : Results.NotFound();
     }
 
-    [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<Product>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     private static async Task<IResult> UpdateProductAsync(int id, UpdateProductDto dto, IProductsService productsService, CancellationToken cancellationToken = default)
     {

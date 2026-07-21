@@ -5,10 +5,10 @@ namespace CSharpApp.Application.Categories.Queries;
 
 public sealed record GetCategoryByIdQuery: IRequest<Result<Category>>
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
 
 }
-public sealed class GetCategoryByIdQueryQueryHandler(ICategoriesService categoriesService, ILogger<GetCategoryByIdQueryQueryHandler> logger): IRequestHandler<GetCategoryByIdQuery, Result<Category>>
+public sealed class GetCategoryByIdQueryHandler(ICategoriesService categoriesService, ILogger<GetCategoryByIdQueryHandler> logger): IRequestHandler<GetCategoryByIdQuery, Result<Category>>
 {
     public async Task<Result<Category>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
     {

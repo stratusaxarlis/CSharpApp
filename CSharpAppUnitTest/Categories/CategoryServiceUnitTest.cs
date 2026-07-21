@@ -2,6 +2,7 @@
 using System.Net.Http.Json;
 using CSharpApp.Application.Categories;
 using CSharpApp.Core.Dtos;
+using CSharpApp.Core.Interfaces;
 using CSharpApp.Core.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,6 +14,7 @@ public sealed class CategoriesServiceTests
 {
     private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock = new();
     private readonly Mock<ILogger<CategoriesService>> _loggerMock = new();
+    private readonly Mock<IAuthService> _authServiceMock = new();
     private readonly Mock<IOptionsSnapshot<RestApiSettings>> _options = new();
 
     private static List<Category> GetSampleCategories() =>
@@ -42,7 +44,7 @@ public sealed class CategoriesServiceTests
             BaseAddress = new Uri("https://api.escuelajs.co/")
         };
 
-        return new CategoriesService(httpClient, _options.Object, _loggerMock.Object);
+        return new CategoriesService(httpClient, _options.Object, _loggerMock.Object,_authServiceMock.Object);
     }
 
     private void SetupMockResponse(HttpStatusCode statusCode, object? responseBody = null)
