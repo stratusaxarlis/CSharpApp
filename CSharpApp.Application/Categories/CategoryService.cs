@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 
 namespace CSharpApp.Application.Categories;
 
-public sealed class CategoriesService(HttpClient httpClient, IOptionsSnapshot<RestApiSettings> restApiSettings, ILogger<CategoriesService> logger, IAuthService authService) : ICategoriesService
+public sealed class CategoriesService(HttpClient httpClient, IOptionsSnapshot<RestApiSettings> restApiSettings, ILogger<CategoriesService> logger) : ICategoriesService
 {
     private string CategoriesPath => restApiSettings.Value.Categories!;
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -36,12 +36,6 @@ public sealed class CategoriesService(HttpClient httpClient, IOptionsSnapshot<Re
 
     public async Task<Category?> CreateCategoryAsync(CreateCategoryDto dto, CancellationToken cancellationToken = default)
     {
-        string? token = await authService.GetValidAccessTokenAsync(cancellationToken);
-
-        if (token is not null)
-        {
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
 
         HttpResponseMessage response = await httpClient.PostAsJsonAsync(CategoriesPath, dto,JsonOptions, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -58,27 +52,15 @@ public sealed class CategoriesService(HttpClient httpClient, IOptionsSnapshot<Re
 
     public async Task<Category?> UpdateCategoryAsync(int id, UpdateCategoryDto dto, CancellationToken cancellationToken = default)
     {
-        string? token = await authService.GetValidAccessTokenAsync(cancellationToken);
-
-        if (token is not null)
-        {
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
-
-        var response = await httpClient.PutAsJsonAsync($"{CategoriesPath}/{id}", dto, cancellationToken);
+        HttpResponseMessage response = await httpClient.PutAsJsonAsync($"{CategoriesPath}/{id}", dto, cancellationToken);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Category>(cancellationToken: cancellationToken);
     }
 
     public async Task<bool> DeleteCategoryAsync(int id, CancellationToken cancellationToken = default)
     {
-        string? token = await authService.GetValidAccessTokenAsync(cancellationToken);
 
-        if (token is not null)
-        {
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
-        var response = await httpClient.DeleteAsync($"{CategoriesPath}/{id}", cancellationToken);
+        HttpResponseMessage response = await httpClient.DeleteAsync($"{CategoriesPath}/{id}", cancellationToken);
         return response.IsSuccessStatusCode;
     }
 }

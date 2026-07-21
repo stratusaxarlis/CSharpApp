@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 
 namespace CSharpApp.Application.Products;
 
-public sealed class ProductsService(HttpClient httpClient, IOptionsSnapshot<RestApiSettings> restApiSettings, ILogger<ProductsService> logger, IAuthService authService) : IProductsService
+public sealed class ProductsService(HttpClient httpClient, IOptionsSnapshot<RestApiSettings> restApiSettings, ILogger<ProductsService> logger) : IProductsService
 {
     private string ProductsPath => restApiSettings.Value.Products!;
 
@@ -36,12 +36,7 @@ public sealed class ProductsService(HttpClient httpClient, IOptionsSnapshot<Rest
 
     public async Task<Product?> CreateProductAsync(CreateProductDto dto, CancellationToken cancellationToken = default)
     {
-        string? token = await authService.GetValidAccessTokenAsync(cancellationToken);
 
-        if (token is not null)
-        {
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
 
         HttpResponseMessage response = await httpClient.PostAsJsonAsync(ProductsPath, dto,JsonOptions, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -57,14 +52,7 @@ public sealed class ProductsService(HttpClient httpClient, IOptionsSnapshot<Rest
     }
 
     public async Task<Product?> UpdateProductAsync(int id, UpdateProductDto dto, CancellationToken cancellationToken = default)
-
     {
-        string? token = await authService.GetValidAccessTokenAsync(cancellationToken);
-
-        if (token is not null)
-        {
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
 
         HttpResponseMessage response = await httpClient.PutAsJsonAsync(ProductsPath, dto,JsonOptions, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -81,12 +69,6 @@ public sealed class ProductsService(HttpClient httpClient, IOptionsSnapshot<Rest
 
     public async Task<bool> DeleteProductAsync(int id, CancellationToken cancellationToken = default)
     {
-        string? token = await authService.GetValidAccessTokenAsync(cancellationToken);
-
-        if (token is not null)
-        {
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
 
         HttpResponseMessage response = await httpClient.DeleteAsync($"{ProductsPath}/{id}", cancellationToken);
         return response.IsSuccessStatusCode;

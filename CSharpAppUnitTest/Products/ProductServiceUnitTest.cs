@@ -16,7 +16,6 @@ public sealed class ProductsServiceTests
 {
     private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock = new();
     private readonly Mock<ILogger<ProductsService>> _loggerMock = new();
-    private readonly Mock<IAuthService> _authServiceMock = new();
     private readonly Mock<IOptionsSnapshot<RestApiSettings>> _options = new();
 
 
@@ -47,7 +46,7 @@ public sealed class ProductsServiceTests
             BaseAddress = new Uri("https://api.escuelajs.co/")
         };
 
-        return new ProductsService(httpClient, _options.Object, _loggerMock.Object,_authServiceMock.Object);
+        return new ProductsService(httpClient, _options.Object, _loggerMock.Object);
     }
 
     private void SetupMockResponse(HttpStatusCode statusCode, object? responseBody = null)

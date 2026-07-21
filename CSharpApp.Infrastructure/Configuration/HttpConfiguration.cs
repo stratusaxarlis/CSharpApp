@@ -14,16 +14,24 @@ public static class HttpConfiguration
         ServiceProvider serviceProvider = services.BuildServiceProvider();
         IConfiguration? configuration = serviceProvider.GetService<IConfiguration>();
         services.AddTransient<PerformanceLoggingHandler>();
-
+        services.AddTransient<AuthTokenHandler>();
 
         HttpClientSettings httpSettings = configuration?.GetSection("HttpClientSettings").Get<HttpClientSettings>() ?? new HttpClientSettings();
-        services.AddTypedHttpClient<IProductsService, ProductsService>(httpSettings);
-        services.AddTypedHttpClient<ICategoriesService, CategoriesService>(httpSettings);
+        services.AddAuthenticatedTypedHttpClient<IProductsService, ProductsService>(httpSettings);
+        services.AddAuthenticatedTypedHttpClient<ICategoriesService, CategoriesService>(httpSettings);
         services.AddTypedHttpClient<IAuthService, AuthService>(httpSettings);
 
         return services;
     }
-
+    private static IHttpClientBuilder AddAuthenticatedTypedHttpClient<TClient, TImplementation>(
+        this IServiceCollection services,
+        HttpClientSettings httpSettings)
+        where TClient : class
+        where TImplementation : class, TClient
+    {
+        return services.AddTypedHttpClient<TClient, TImplementation>(httpSettings)
+            .AddHttpMessageHandler<AuthTokenHandler>();
+    }
     private static IHttpClientBuilder AddTypedHttpClient<TClient, TImplementation>(this IServiceCollection services, HttpClientSettings httpSettings) where TClient : class where TImplementation : class, TClient
     {
         return services.AddHttpClient<TClient, TImplementation>((sp, client) =>
