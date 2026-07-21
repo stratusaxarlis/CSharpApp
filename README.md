@@ -33,6 +33,31 @@ HTTP services (`ProductsService`, `CategoriesService`, `AuthService`) are config
 > * **Authenticated Services (`IProductsService`, `ICategoriesService`):** Configured with `AuthTokenHandler` to automatically inject Bearer tokens.
 > * **Authentication Service (`IAuthService`):** Registered **without** `AuthTokenHandler` because it is responsible for fetching tokens in the first place.
 
+# CSharpApp (.NET 9 Web API)
+
+A production-ready, clean-architecture Web API built with **.NET 9**, **Minimal APIs**, **Scalar API Documentation**, and **MediatR (CQRS pattern)**. It includes resilient HTTP clients configured with **Polly**, custom delegating handlers, pipeline behaviors, and integration/unit tests using `WebApplicationFactory`.
+
+---
+
+## 🚀 Getting Started
+
+Follow these instructions to clone, build, run, and test the API on your local machine.
+
+### Prerequisites
+
+Ensure you have the following installed before starting:
+* [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) *(Optional — required only for container deployment)*
+* Git CLI
+
+---
+
+### Step 1: Clone the Repository
+
+```bash
+git clone [https://github.com/stratusaxarlis/CSharpApp.git](https://github.com/stratusaxarlis/CSharpApp.git)
+cd CSharpApp
+
 ---
 
 ## 📁 Solution Structure
