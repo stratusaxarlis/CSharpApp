@@ -1,4 +1,5 @@
 ﻿using CSharpApp.Api.Extensions;
+using CSharpApp.Application.Categories.Commands;
 using CSharpApp.Application.Categories.Queries;
 using CSharpApp.Core.Dtos;
 using CSharpApp.Infrastructure.Helpers;
@@ -30,10 +31,10 @@ public sealed class CategoryEndpoints : EndpointGroupBase
         group.MapDelete(handler: DeleteCategoryAsync, pattern: "{id:int}");
     }
 
-    [ProducesResponseType(typeof(IReadOnlyCollection<Category>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof( Result<IReadOnlyCollection<Category>>), StatusCodes.Status200OK)]
     private static async Task<IResult> GetCategoriesAsync([FromServices] ISender sender, CancellationToken cancellationToken = default)
     {
-        IReadOnlyCollection<Category> categories = await sender.Send(new GetCategoriesQuery(), cancellationToken);
+        Result<IReadOnlyCollection<Category>> categories = await sender.Send(new GetCategoriesQuery(), cancellationToken);
         return Results.Ok(categories);
     }
 
@@ -45,31 +46,32 @@ public sealed class CategoryEndpoints : EndpointGroupBase
         return category is not null ? Results.Ok(category) : Results.NotFound();
     }
 
-    [ProducesResponseType(typeof(Category), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof( Result<Category>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    private static async Task<IResult> CreateCategoryAsync(ICategoriesService categoriesService, CreateCategoryDto dto, HttpContext httpContext, CancellationToken cancellationToken = default)
+    private static async Task<IResult> CreateCategoryAsync([FromServices] ISender sender, CreateCategoryDto dto, HttpContext httpContext, CancellationToken cancellationToken = default)
     {
-        Category? created = await categoriesService.CreateCategoryAsync(dto, cancellationToken);
+
+        Result<Category>? created = await sender.Send(new CreateCategoryCommand { Dto = dto }, cancellationToken);
         int version = httpContext.GetRequestedApiVersion()?.MajorVersion ?? 1;
 
-        return created is not null
-            ? Results.Created($"api/v{version}/categories/{created.Id}", created)
+        return created is not null && created.Data is not null && created.Data.Id > 0
+            ? Results.Created($"api/v{version}/categories/{created?.Data?.Id}", created)
             : Results.BadRequest();
     }
 
     [ProducesResponseType(typeof(Category), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    private static async Task<IResult> UpdateCategoryAsync(int id, UpdateCategoryDto dto, ICategoriesService categoriesService, CancellationToken cancellationToken = default)
+    private static async Task<IResult> UpdateCategoryAsync([FromServices] ISender sender, int id, UpdateCategoryDto dto, CancellationToken cancellationToken = default)
     {
-        Category? updated = await categoriesService.UpdateCategoryAsync(id, dto, cancellationToken);
+        Result<Category>? updated = await sender.Send(new UpdateCategoryCommand { Id = id, Dto = dto }, cancellationToken);
         return updated is not null ? Results.Ok(updated) : Results.NotFound();
     }
 
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    private static async Task<IResult> DeleteCategoryAsync(int id, ICategoriesService categoriesService, CancellationToken cancellationToken = default)
+    private static async Task<IResult> DeleteCategoryAsync(int id, [FromServices] ISender sender, CancellationToken cancellationToken = default)
     {
-        bool success = await categoriesService.DeleteCategoryAsync(id, cancellationToken);
-        return success ? Results.NoContent() : Results.NotFound();
+        Result<bool> success = await sender.Send(new DeleteCategoryCommand { Id = id }, cancellationToken);
+        return success.Data ? Results.NoContent() : Results.NotFound();
     }
 }

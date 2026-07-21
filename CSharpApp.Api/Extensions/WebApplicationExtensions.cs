@@ -45,7 +45,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddProblemDetails();
         builder.Services.AddApiVersioning();
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
+        builder.Services.AddMemoryCache();
         return builder;
     }
 
