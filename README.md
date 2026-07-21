@@ -33,10 +33,6 @@ HTTP services (`ProductsService`, `CategoriesService`, `AuthService`) are config
 > * **Authenticated Services (`IProductsService`, `ICategoriesService`):** Configured with `AuthTokenHandler` to automatically inject Bearer tokens.
 > * **Authentication Service (`IAuthService`):** Registered **without** `AuthTokenHandler` because it is responsible for fetching tokens in the first place.
 
-# CSharpApp (.NET 9 Web API)
-
-A production-ready, clean-architecture Web API built with **.NET 9**, **Minimal APIs**, **Scalar API Documentation**, and **MediatR (CQRS pattern)**. It includes resilient HTTP clients configured with **Polly**, custom delegating handlers, pipeline behaviors, and integration/unit tests using `WebApplicationFactory`.
-
 ---
 
 ## 🚀 Getting Started
