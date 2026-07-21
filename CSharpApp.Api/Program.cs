@@ -25,7 +25,7 @@ public sealed class Program
         try
         {
             WebApplicationBuilder builder = WebApplication.CreateBuilder(webApplicationOptions).Configure();
-
+            builder.Services.AddMediator();
             WebApplication app = builder.Build();
             app.LogSystemInformation();
 
@@ -47,6 +47,3 @@ public sealed class Program
         }
     }
 }
-
-
-

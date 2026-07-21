@@ -11,8 +11,8 @@ public static class HttpConfiguration
 {
     public static IServiceCollection AddHttpConfiguration(this IServiceCollection services)
     {
-        var serviceProvider = services.BuildServiceProvider();
-        var configuration = serviceProvider.GetService<IConfiguration>();
+        ServiceProvider serviceProvider = services.BuildServiceProvider();
+        IConfiguration? configuration = serviceProvider.GetService<IConfiguration>();
         services.AddTransient<PerformanceLoggingHandler>();
 
 
