@@ -1,5 +1,8 @@
 ﻿using CSharpApp.Api.Extensions;
+using CSharpApp.Application.Categories.Queries;
 using CSharpApp.Core.Dtos;
+using CSharpApp.Infrastructure.Helpers;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CSharpApp.Api.Endpoints;
@@ -28,17 +31,17 @@ public sealed class CategoryEndpoints : EndpointGroupBase
     }
 
     [ProducesResponseType(typeof(IReadOnlyCollection<Category>), StatusCodes.Status200OK)]
-    private static async Task<IResult> GetCategoriesAsync(ICategoriesService categoriesService, CancellationToken cancellationToken = default)
+    private static async Task<IResult> GetCategoriesAsync([FromServices] ISender sender, CancellationToken cancellationToken = default)
     {
-        IReadOnlyCollection<Category> categories = await categoriesService.GetCategoriesAsync(cancellationToken);
+        IReadOnlyCollection<Category> categories = await sender.Send(new GetCategoriesQuery(), cancellationToken);
         return Results.Ok(categories);
     }
 
-    [ProducesResponseType(typeof(Category), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof( Result<Category>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    private static async Task<IResult> GetCategoryByIdAsync(int id, ICategoriesService categoriesService, CancellationToken cancellationToken = default)
-    {
-        Category? category = await categoriesService.GetCategoryByIdAsync(id, cancellationToken);
+    private static async Task<IResult> GetCategoryByIdAsync([FromServices] ISender sender,int id, CancellationToken cancellationToken = default)
+    {   GetCategoryByIdQuery query = new GetCategoryByIdQuery { Id = id };
+        Result<Category>? category = await sender.Send(query, cancellationToken);
         return category is not null ? Results.Ok(category) : Results.NotFound();
     }
 

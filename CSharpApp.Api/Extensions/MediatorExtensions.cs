@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
 using CSharpApp.Application.Common;
+using CSharpApp.Application.Common.Helpers;
 using CSharpApp.Application.Common.Pipelines;
 using CSharpApp.Application.Common.Publisher;
+using CSharpApp.Infrastructure.Middleware.Handlers;
 using FluentValidation;
 using MediatR.Pipeline;
 
@@ -11,18 +13,19 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddMediator(this IServiceCollection services)
     {
-        Assembly? mediaTrAssembly = AppDomain.CurrentDomain.GetAssemblies()
-            .FirstOrDefault(x => x.FullName!.Contains("CSharp.Application"));
-        services.AddValidatorsFromAssembly(mediaTrAssembly ?? Assembly.GetCallingAssembly());
-
-
+        Assembly? mediaTrAssembly =typeof(Application.Categories.Queries.GetCategoryByIdQuery).Assembly;
+        services.AddValidatorsFromAssembly(mediaTrAssembly);
+        services.AddSingleton<IRequestPerformanceState, RequestPerformanceState>();
+        services.AddExceptionHandler<GlobalExceptionHandler>();
+        services.AddProblemDetails();
         services.AddMediatR(config =>
         {
             config.Lifetime = ServiceLifetime.Scoped;
-            config.RegisterServicesFromAssembly(mediaTrAssembly ?? Assembly.GetCallingAssembly());
+            config.RegisterServicesFromAssembly(mediaTrAssembly);
             config.NotificationPublisher = new ParallelNoWaitPublisher();
-            config.AddRequestPreProcessor(typeof(IRequestPreProcessor<>), typeof(LoggingPreProcessor<>))
-                .AddOpenBehavior(typeof(GlobalExceptionBehaviour<,>));
+            config.AddRequestPreProcessor(typeof(IRequestPreProcessor<>), typeof(LoggingPreProcessor<>));
+            config.AddRequestPreProcessor(typeof(IRequestPreProcessor<>), typeof(ValidationPreProcessor<>));
+            config.AddOpenBehavior(typeof(GlobalExceptionBehaviour<,>));
             config.AddOpenBehavior(typeof(PerformanceBehaviour<,>));
         });
         return services;

@@ -4,8 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace CSharpApp.Application.Common.Pipelines;
 
-public sealed class PerformanceBehaviour<TRequest, TResponse>(IRequestPerformanceState performanceState, ILogger<PerformanceBehaviour<TRequest, TResponse>> logger,
-    IHttpContextAccessor contextAccessor): IPipelineBehavior<TRequest, TResponse>
+public sealed class PerformanceBehaviour<TRequest, TResponse>(IRequestPerformanceState performanceState, ILogger<PerformanceBehaviour<TRequest, TResponse>> logger, IHttpContextAccessor contextAccessor): IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
     /// <summary>
