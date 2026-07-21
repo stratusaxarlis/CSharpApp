@@ -42,7 +42,7 @@ public class CategoryEndpointsTests : IClassFixture<WebApplicationFactory<Progra
             new() { Id = 2, Name = "Books" }
         };
 
-        // Wrap response in Result<T>.Success(...)
+
         _senderMock
             .Setup(s => s.Send(It.IsAny<GetCategoriesQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyCollection<Category>>.Success(categories));
@@ -60,26 +60,22 @@ public class CategoryEndpointsTests : IClassFixture<WebApplicationFactory<Progra
     [Fact]
     public async Task GetCategoryById_ShouldReturnNotFound_WhenResultIsFailed()
     {
-        // Arrange
         var client = _factory.CreateClient();
         var categoryId = 999;
 
-        // Wrap response in Result<T>.Fail(...)
+
         _senderMock
             .Setup(s => s.Send(It.Is<GetCategoryByIdQuery>(q => q.Id == categoryId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Category>.Failure("Category not found"));
 
-        // Act
         var response = await client.GetAsync($"/api/categories/{categoryId}");
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task CreateCategory_ShouldReturnCreated_WhenResultIsSuccess()
     {
-        // Arrange
         var client = _factory.CreateClient();
         var createDto = new CreateCategoryDto { Name = "Gaming" };
         var createdCategory = new Category { Id = 10, Name = "Gaming" };
@@ -88,10 +84,10 @@ public class CategoryEndpointsTests : IClassFixture<WebApplicationFactory<Progra
             .Setup(s => s.Send(It.IsAny<CreateCategoryCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Category>.Success(createdCategory));
 
-        // Act
+
         var response = await client.PostAsJsonAsync("/api/categories", createDto);
 
-        // Assert
+
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var result = await response.Content.ReadFromJsonAsync<Category>();
@@ -102,7 +98,7 @@ public class CategoryEndpointsTests : IClassFixture<WebApplicationFactory<Progra
     [Fact]
     public async Task DeleteCategory_ShouldReturnNoContent_WhenResultIsSuccess()
     {
-        // Arrange
+
         var client = _factory.CreateClient();
         var categoryId = 1;
 
@@ -110,10 +106,10 @@ public class CategoryEndpointsTests : IClassFixture<WebApplicationFactory<Progra
             .Setup(s => s.Send(It.Is<DeleteCategoryCommand>(c => c.Id == categoryId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        // Act
+
         var response = await client.DeleteAsync($"/api/categories/{categoryId}");
 
-        // Assert
+
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }
