@@ -66,7 +66,9 @@ CSharpApp/
 │   ├── CSharpApp.Core/           # Core Entities, Interfaces & Result<T> Pattern
 │   └── CSharpApp.Infrastructure/ # Typed HttpClients, Polly Policies & Auth Handlers
 
+---
 
+``` 
 # Architectural Suggestions & Future Roadmap
 
 This document outlines strategic enhancements for the **CSharpApp** repository to drastically improve performance, resilience, and scalability. The roadmap is divided into two major phases: implementing an advanced hybrid caching layer and evolving the architecture into a Modular Monolith for future microservices readiness.
