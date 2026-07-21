@@ -7,6 +7,7 @@ using Moq;
 using Moq.Protected;
 using System.Net;
 using System.Net.Http.Json;
+using CSharpApp.Core.Interfaces;
 using Xunit;
 
 namespace UnitTests;
@@ -15,6 +16,7 @@ public sealed class ProductsServiceTests
 {
     private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock = new();
     private readonly Mock<ILogger<ProductsService>> _loggerMock = new();
+    private readonly Mock<IAuthService> _authServiceMock = new();
     private readonly Mock<IOptionsSnapshot<RestApiSettings>> _options = new();
 
 
@@ -45,7 +47,7 @@ public sealed class ProductsServiceTests
             BaseAddress = new Uri("https://api.escuelajs.co/")
         };
 
-        return new ProductsService(httpClient, _options.Object, _loggerMock.Object);
+        return new ProductsService(httpClient, _options.Object, _loggerMock.Object,_authServiceMock.Object);
     }
 
     private void SetupMockResponse(HttpStatusCode statusCode, object? responseBody = null)

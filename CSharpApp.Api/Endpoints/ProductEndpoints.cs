@@ -1,4 +1,5 @@
 ﻿using CSharpApp.Api.Extensions;
+using CSharpApp.Application.Products.Commands;
 using CSharpApp.Application.Products.Queries;
 using CSharpApp.Core.Dtos;
 using CSharpApp.Infrastructure.Helpers;
@@ -33,10 +34,15 @@ public sealed class ProductEndpoints : EndpointGroupBase
     }
 
     [ProducesResponseType(typeof(IReadOnlyCollection<Product>), StatusCodes.Status200OK)]
-    private static async Task<IResult> CreateProductAsync(IProductsService productsService, CreateProductDto dto, HttpContext httpContext, CancellationToken cancellationToken = default)
+    private static async Task<IResult> CreateProductAsync([FromServices] ISender sender, CreateProductDto dto, HttpContext httpContext, CancellationToken cancellationToken = default)
     {
-        Product? created = await productsService.CreateProductAsync(dto, cancellationToken);
+        Result<Product> result = await sender.Send(new CreateProductCommand { Dto = dto }, cancellationToken);
+        if (!result.Succeeded)
+        {
+            return Results.BadRequest();
+        }
 
+        Product created = (result.Data ?? null) ;
         int version = httpContext.GetRequestedApiVersion()?.MajorVersion ?? 1;
 
         return created is not null
@@ -54,17 +60,19 @@ public sealed class ProductEndpoints : EndpointGroupBase
 
     [ProducesResponseType(typeof(Result<Product>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    private static async Task<IResult> UpdateProductAsync(int id, UpdateProductDto dto, IProductsService productsService, CancellationToken cancellationToken = default)
+    private static async Task<IResult> UpdateProductAsync(int id, UpdateProductDto dto, [FromServices] ISender sender, CancellationToken cancellationToken = default)
     {
-        Product? updated = await productsService.UpdateProductAsync(id, dto, cancellationToken);
-        return updated is not null ? Results.Ok(updated) : Results.NotFound();
+        UpdateProductCommand command = new UpdateProductCommand { Id = id, Dto = dto };
+        Result<Product> result = await sender.Send(command, cancellationToken);
+        return result.Data is not null ? Results.Ok(result.Data) : Results.NotFound();
     }
 
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    private static async Task<IResult> DeleteProductAsync(int id, IProductsService productsService, CancellationToken cancellationToken = default)
+    private static async Task<IResult> DeleteProductAsync(int id, [FromServices] ISender sender, CancellationToken cancellationToken = default)
     {
-        bool success = await productsService.DeleteProductAsync(id, cancellationToken);
-        return success ? Results.NoContent() : Results.NotFound();
+        DeleteProductCommand command = new DeleteProductCommand { Id = id };
+        Result<bool> result = await sender.Send(command, cancellationToken);
+        return result.Data ? Results.NoContent() : Results.NotFound();
     }
 }

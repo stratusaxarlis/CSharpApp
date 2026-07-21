@@ -15,8 +15,8 @@ public sealed class CreateCategoryCommandHandler(ICategoriesService categoriesSe
         if (created is null)
         {
             logger.LogWarning("No categories created.");
-            return Result<Category>.Failure("No categories created.");
+            return await Result<Category>.FailureAsync("No categories created.");
         }
-        return Result<Category>.Success(created);
+        return await Result<Category>.SuccessAsync(created);
     }
 }

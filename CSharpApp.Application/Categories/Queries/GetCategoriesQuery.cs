@@ -18,8 +18,8 @@ public sealed class GetCategoriesQueryHandler(ICategoriesService categoriesServi
         if (categories.Count == 0)
         {
             logger.LogWarning("No categories found.");
-            return Result<IReadOnlyCollection<Category>>.Failure("No categories found.");
+            return await Result<IReadOnlyCollection<Category>>.FailureAsync("No categories found.");
         }
-        return Result<IReadOnlyCollection<Category>>.Success(categories);
+        return await Result<IReadOnlyCollection<Category>>.SuccessAsync(categories);
     }
 }

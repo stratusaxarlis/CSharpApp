@@ -16,8 +16,8 @@ public sealed class GetProductsQueryHandler(IProductsService productsService, IL
         if (products.Count == 0)
         {
             logger.LogWarning("No products found.");
-            return Result<IReadOnlyCollection<Product>>.Failure("No products found.");
+            return await Result<IReadOnlyCollection<Product>>.FailureAsync("No products found.");
         }
-        return Result<IReadOnlyCollection<Product>>.Success(products);
+        return await Result<IReadOnlyCollection<Product>>.SuccessAsync(products);
     }
 }

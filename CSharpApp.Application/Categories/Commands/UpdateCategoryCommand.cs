@@ -18,8 +18,8 @@ public sealed class UpdateCategoryCommandHandler(ICategoriesService categoriesSe
         if (updated is null)
         {
             logger.LogWarning("No categories updated.");
-            return Result<Category>.Failure("No categories updated.");
+            return await Result<Category>.FailureAsync("No categories updated.");
         }
-        return Result<Category>.Success(updated);
+        return await Result<Category>.SuccessAsync(updated);
     }
 }

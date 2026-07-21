@@ -16,9 +16,9 @@ public sealed class GetProductByIdQueryHandler(IProductsService productsService,
         if (product is null)
         {
             logger.LogWarning("Product with ID {ProductId} not found.", request.Id);
-            return Result<Product>.Failure($"Product with ID {request.Id} not found.");
+            return await Result<Product>.FailureAsync($"Product with ID {request.Id} not found.");
         }
 
-        return Result<Product>.Success(product);
+        return await Result<Product>.SuccessAsync(product);
     }
 }
